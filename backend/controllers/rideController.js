@@ -26,11 +26,26 @@ export const createRide = async (req, res) => {
 export const getNearbyRides = async (req, res) => {
   try {
     const { origin, destination } = req.query;
+    const now = new Date();
+    
+   // Mark past rides as expired automatically
+await rideModel.updateMany(
+  { status: 'open', departureTime: { $lt: now, $ne: null } },
+  { $set: { status: 'expired' } }
+);
 
-    const rides = await rideModel.find({ status: 'open' })
+    const rides = await rideModel.find({
+      status: 'open',
+      $or: [
+        { departureTime: { $gte: now } }, // future departure
+        { departureTime: null },            // no time set
+        { departureTime: { $exists: false } }
+      ]
+    })
       .populate('creator', 'name phone')
       .populate('passengers', 'name');
-
+    
+    // rest of your existing code unchanged...
     if (!origin && !destination) return res.json({ rides });
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
