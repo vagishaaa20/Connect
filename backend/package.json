@@ -22,9 +22,11 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "path": "^0.12.7",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.4.394",
+    "razorpay": "^2.9.6",
     "socket.io": "^4.8.1",
     "string-similarity": "^4.0.4"
   },

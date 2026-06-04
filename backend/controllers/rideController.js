@@ -48,7 +48,7 @@ await rideModel.updateMany(
     // rest of your existing code unchanged...
     if (!origin && !destination) return res.json({ rides });
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `
 You are a ride-matching assistant for a campus app.
 User wants to go from "${origin}" to "${destination}".
@@ -123,18 +123,26 @@ export const completeRide = async (req, res) => {
 
     const farePerPerson = (ride.estimatedFare / ride.passengers.length).toFixed(2);
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const prompt = `
-A campus ride from ${ride.origin} to ${ride.destination} just completed.
+    const prompt = `A campus ride from ${ride.origin} to ${ride.destination} just completed.
 Total fare: ₹${ride.estimatedFare}. Passengers: ${ride.passengers.map(p => p.name).join(', ')}.
 Each person owes ₹${farePerPerson}.
 Write a friendly 2-sentence explanation of the split. Be casual and campus-friendly.`;
 
-    const result = await model.generateContent(prompt);
-    const explanation = result.response.text().trim();
+    // Direct fetch instead of SDK
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      }
+    );
+    const geminiData = await geminiRes.json();
+    const explanation = geminiData.candidates[0].content.parts[0].text.trim();
 
     res.json({ ride, farePerPerson, passengers: ride.passengers, aiExplanation: explanation });
   } catch (err) {
+    console.error('COMPLETE ROUTE ERROR:', err);
     res.status(500).json({ message: err.message });
   }
 };

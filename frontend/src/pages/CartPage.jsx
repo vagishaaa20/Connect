@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Trash2, ShoppingCart, MessageCircle, ReceiptText,
-  Sparkles, Loader2, CheckCircle2, AlertCircle, Upload, ExternalLink
+  Sparkles, Loader2, CheckCircle2, AlertCircle, Upload, ExternalLink,
+  CreditCard
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
@@ -25,7 +26,7 @@ const FoodParticles = () => (
   </div>
 );
 
-/* ── Steam animation above hot items ── */
+/* ── Steam animation ── */
 const Steam = () => (
   <div style={{ position: 'absolute', top: -18, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 3, pointerEvents: 'none' }}>
     {[0, 1, 2].map(i => (
@@ -43,13 +44,10 @@ const StatChip = ({ icon, label, value, color }) => (
   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
     whileHover={{ scale: 1.05, y: -2 }}
     style={{
-      background: 'rgba(255,255,255,0.03)',
-      border: `1px solid ${color}33`,
+      background: 'rgba(255,255,255,0.03)', border: `1px solid ${color}33`,
       borderRadius: 16, padding: '0.85rem 1.1rem',
       display: 'flex', alignItems: 'center', gap: '0.7rem',
-      backdropFilter: 'blur(12px)',
-      boxShadow: `0 0 20px ${color}11`,
-      cursor: 'default',
+      backdropFilter: 'blur(12px)', boxShadow: `0 0 20px ${color}11`, cursor: 'default',
     }}>
     <div style={{
       width: 38, height: 38, borderRadius: 10,
@@ -68,29 +66,20 @@ const StatChip = ({ icon, label, value, color }) => (
 const ItemRow = ({ item, onRemove, isOwn, index }) => {
   const isHighPrice = item.price > 200;
   return (
-    <motion.li
-      layout
-      initial={{ opacity: 0, x: -16 }}
-      animate={{ opacity: 1, x: 0 }}
+    <motion.li layout
+      initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 16, height: 0 }}
       transition={{ delay: index * 0.04, type: 'spring', stiffness: 200 }}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0.9rem 0',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        position: 'relative',
-      }}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.9rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
         <div style={{ position: 'relative' }}>
           {isHighPrice && <Steam />}
           <div style={{
             width: 44, height: 44, borderRadius: 12,
-            background: 'rgba(249,115,22,0.1)',
-            border: '1px solid rgba(249,115,22,0.2)',
+            background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.3rem',
-            boxShadow: '0 0 12px rgba(249,115,22,0.15)',
+            fontSize: '1.3rem', boxShadow: '0 0 12px rgba(249,115,22,0.15)',
           }}>
             {item.image && !item.image.includes('placeholder') && !item.image.includes('via.placeholder')
               ? <img src={item.image} alt={item.itemName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
@@ -105,15 +94,11 @@ const ItemRow = ({ item, onRemove, isOwn, index }) => {
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <span style={{
-          fontFamily: 'monospace', fontWeight: 700, fontSize: '0.95rem',
-          color: '#f97316', textShadow: '0 0 8px rgba(249,115,22,0.5)',
-        }}>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.95rem', color: '#f97316', textShadow: '0 0 8px rgba(249,115,22,0.5)' }}>
           ₹{(item.price * item.quantity).toFixed(2)}
         </span>
         {isOwn && (
-          <motion.button
-            whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
+          <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
             onClick={() => onRemove(item.itemName)}
             style={{
               background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
@@ -133,42 +118,29 @@ const ItemRow = ({ item, onRemove, isOwn, index }) => {
 };
 
 /* ── AI Invoice Panel ── */
-const parseInvoiceWithAI = async (file) => {
-  const toBase64 = (f) => new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result.split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(f);
+const parseInvoiceWithAI = async (file, token) => {
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
-  const base64 = await toBase64(file);
-  const mimeType = file.type || 'image/jpeg';
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch('http://localhost:5000/api/cart/parse-invoice-ai', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
-          { type: 'text', text: `You are an invoice parser. Extract all line items from this food bill or invoice image.\nReturn ONLY valid JSON, no preamble, no markdown.\nFormat: {"items": [{"itemName": "string", "price": number, "quantity": number}], "subtotal": number, "total": number}\nIf you cannot read it clearly, return: {"error": "Could not parse invoice"}` },
-        ],
-      }],
-    }),
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ base64, mimeType: file.type })
   });
-  const data = await response.json();
-  const text = data.content?.find(b => b.type === 'text')?.text || '';
-  return JSON.parse(text.replace(/```json|```/g, '').trim());
+  return await response.json();
 };
 
-const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
+const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
   const [file, setFile] = useState(null);
   const [stage, setStage] = useState('idle');
   const [parsedResult, setParsedResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef();
+  const navigate = useNavigate();
 
   const handleFile = (f) => { if (f) { setFile(f); setStage('idle'); setParsedResult(null); } };
   const handleDrop = (e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); };
@@ -176,13 +148,14 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
   const handleParse = async () => {
     setStage('parsing'); setErrorMsg('');
     try {
-      const result = await parseInvoiceWithAI(file);
+      const result = await parseInvoiceWithAI(file, token);
       if (result.error) throw new Error(result.error);
       setParsedResult(result); setStage('parsed');
     } catch (e) { setErrorMsg(e.message || 'AI could not parse this invoice.'); setStage('error'); }
   };
 
   const handleCheckout = async () => {
+    console.log('groupId:', groupId, 'file:', file?.name);
     setStage('uploading');
     const formData = new FormData();
     formData.append('invoice', file);
@@ -205,47 +178,27 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
         boxShadow: '0 0 40px rgba(251,191,36,0.05)',
       }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '1.1rem' }}>
-        <motion.div
-          animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, #fbbf24, #f97316)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(251,191,36,0.5)',
-          }}>
+        <motion.div animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }} transition={{ duration: 3, repeat: Infinity }}
+          style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #fbbf24, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(251,191,36,0.5)' }}>
           <Sparkles size={16} color="#000" />
         </motion.div>
         <div>
-          <h3 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: '1.1rem', color: '#fbbf24', letterSpacing: '0.06em', textShadow: '0 0 10px #fbbf2444' }}>
-            AI INVOICE PARSER
-          </h3>
-          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Upload a bill — AI extracts items instantly
-          </p>
+          <h3 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: '1.1rem', color: '#fbbf24', letterSpacing: '0.06em', textShadow: '0 0 10px #fbbf2444' }}>AI INVOICE PARSER</h3>
+          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Upload a bill — AI extracts items instantly</p>
         </div>
-        <span style={{
-          marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700,
-          padding: '0.2rem 0.6rem', borderRadius: 99,
-          background: 'rgba(251,191,36,0.15)', color: '#fbbf24',
-          border: '1px solid rgba(251,191,36,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em',
-        }}>Admin Only</span>
+        <span style={{ marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Admin Only</span>
       </div>
 
       {/* Drop zone */}
-      <motion.div
-        onClick={() => fileRef.current?.click()}
-        onDrop={handleDrop}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
+      <motion.div onClick={() => fileRef.current?.click()} onDrop={handleDrop}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
         animate={{ borderColor: dragOver ? '#fbbf24' : file ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.08)' }}
         style={{
           border: `2px dashed ${file ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.08)'}`,
           borderRadius: 14, padding: '1.4rem', textAlign: 'center', cursor: 'pointer',
           background: file ? 'rgba(249,115,22,0.06)' : dragOver ? 'rgba(251,191,36,0.04)' : 'rgba(255,255,255,0.02)',
           transition: 'all 0.2s', marginBottom: '0.9rem',
-        }}
-      >
+        }}>
         <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
         <motion.div animate={{ y: file ? 0 : [0, -4, 0] }} transition={{ duration: 2, repeat: Infinity }}>
           <Upload size={22} style={{ color: file ? '#f97316' : 'rgba(255,255,255,0.25)', margin: '0 auto 0.4rem', filter: file ? 'drop-shadow(0 0 6px #f97316)' : 'none' }} />
@@ -258,17 +211,8 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
 
       {/* Parse button */}
       {file && stage === 'idle' && (
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-          onClick={handleParse}
-          style={{
-            width: '100%', padding: '0.8rem', marginBottom: '0.75rem',
-            background: 'linear-gradient(135deg, #fbbf24, #f97316)',
-            border: 'none', borderRadius: 12, cursor: 'pointer',
-            color: '#000', fontWeight: 800, fontFamily: "'Bebas Neue', cursive",
-            letterSpacing: '0.1em', fontSize: '0.95rem',
-            boxShadow: '0 4px 20px rgba(251,191,36,0.35)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-          }}>
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleParse}
+          style={{ width: '100%', padding: '0.8rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #fbbf24, #f97316)', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#000', fontWeight: 800, fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(251,191,36,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
           <Sparkles size={15} /> PARSE WITH AI
         </motion.button>
       )}
@@ -276,9 +220,7 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
       {/* Parsing state */}
       {stage === 'parsing' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.85rem', background: 'rgba(251,191,36,0.06)', borderRadius: 12, marginBottom: '0.75rem', border: '1px solid rgba(251,191,36,0.15)' }}>
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-            <Loader2 size={16} color="#fbbf24" />
-          </motion.div>
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}><Loader2 size={16} color="#fbbf24" /></motion.div>
           <span style={{ fontSize: '0.85rem', color: '#fbbf24' }}>AI is reading your invoice…</span>
         </div>
       )}
@@ -316,28 +258,29 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
         </div>
       )}
 
-      {/* Checkout */}
+      {/* Checkout button */}
       {(stage === 'parsed' || stage === 'error') && file && (
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
           onClick={handleCheckout} disabled={stage === 'uploading'}
-          style={{
-            width: '100%', padding: '0.85rem',
-            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-            border: 'none', borderRadius: 12, cursor: 'pointer',
-            color: '#fff', fontWeight: 800, fontFamily: "'Bebas Neue', cursive",
-            letterSpacing: '0.1em', fontSize: '0.95rem',
-            boxShadow: '0 4px 20px rgba(34,197,94,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-          }}>
+          style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#fff', fontWeight: 800, fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
           {stage === 'uploading'
             ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}><Loader2 size={15} /></motion.div> Processing…</>
             : <><ReceiptText size={15} /> CONFIRM CHECKOUT</>}
         </motion.button>
       )}
+
+      {/* ── Checkout done — show success + Pay button ── */}
       {stage === 'done' && (
-        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
-          style={{ textAlign: 'center', padding: '0.75rem', color: '#22c55e', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-          <CheckCircle2 size={18} style={{ filter: 'drop-shadow(0 0 6px #22c55e)' }} /> Checkout complete!
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ textAlign: 'center', padding: '0.75rem', color: '#22c55e', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+            <CheckCircle2 size={18} style={{ filter: 'drop-shadow(0 0 6px #22c55e)' }} /> Checkout complete!
+          </div>
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(`/payment/${groupId}`)}
+            style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#fff', fontWeight: 800, fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(249,115,22,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <CreditCard size={15} /> PAY YOUR SHARE
+          </motion.button>
         </motion.div>
       )}
     </motion.div>
@@ -400,18 +343,7 @@ const CartPage = () => {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         * { box-sizing: border-box; }
-        .food-input {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 12px;
-          padding: 0.7rem 1rem;
-          color: #fff;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 0.88rem;
-          outline: none;
-          width: 100%;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
+        .food-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.7rem 1rem; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; }
         .food-input:focus { border-color: rgba(249,115,22,0.5); box-shadow: 0 0 0 3px rgba(249,115,22,0.08); }
         .food-input::placeholder { color: rgba(255,255,255,0.2); }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -433,27 +365,15 @@ const CartPage = () => {
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '1.5rem 1.5rem 4rem', position: 'relative', zIndex: 1 }}>
 
           {/* Hero header */}
-          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
-            style={{ marginBottom: '2rem' }}>
+          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <motion.span
-                animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.15, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ fontSize: '2.2rem', filter: 'drop-shadow(0 0 14px rgba(249,115,22,0.6))' }}>
-                🛒
-              </motion.span>
-              <h1 style={{
-                fontFamily: "'Bebas Neue', cursive",
-                fontSize: 'clamp(2rem, 4vw, 3rem)',
-                color: '#fff', letterSpacing: '0.04em', lineHeight: 1,
-                textShadow: '0 0 40px rgba(249,115,22,0.25)',
-              }}>
+              <motion.span animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.15, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ fontSize: '2.2rem', filter: 'drop-shadow(0 0 14px rgba(249,115,22,0.6))' }}>🛒</motion.span>
+              <h1 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#fff', letterSpacing: '0.04em', lineHeight: 1, textShadow: '0 0 40px rgba(249,115,22,0.25)' }}>
                 GROUP <span style={{ color: '#f97316', textShadow: '0 0 20px rgba(249,115,22,0.6)' }}>CART</span>
               </h1>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              🍽️ Order together · split smart
-            </p>
+            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>🍽️ Order together · split smart</p>
           </motion.div>
 
           {/* Stats */}
@@ -476,25 +396,14 @@ const CartPage = () => {
 
           {/* Main cart card */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 24, padding: '1.75rem',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 0 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
-            }}>
+            style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 24, padding: '1.75rem', backdropFilter: 'blur(20px)', boxShadow: '0 0 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
 
             {/* Card header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '1.5rem' }}>
-              <motion.div
-                animate={{ boxShadow: ['0 0 8px rgba(249,115,22,0.4)', '0 0 18px rgba(249,115,22,0.7)', '0 0 8px rgba(249,115,22,0.4)'] }}
-                transition={{ duration: 2.5, repeat: Infinity }}
-              >
+              <motion.div animate={{ boxShadow: ['0 0 8px rgba(249,115,22,0.4)', '0 0 18px rgba(249,115,22,0.7)', '0 0 8px rgba(249,115,22,0.4)'] }} transition={{ duration: 2.5, repeat: Infinity }}>
                 <ShoppingCart size={20} color="#f97316" style={{ filter: 'drop-shadow(0 0 6px #f97316)' }} />
               </motion.div>
-              <h2 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: '1.2rem', color: '#fff', letterSpacing: '0.06em', flex: 1 }}>
-                ORDER ITEMS
-              </h2>
+              <h2 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: '1.2rem', color: '#fff', letterSpacing: '0.06em', flex: 1 }}>ORDER ITEMS</h2>
               {cart?.status && (
                 <span style={{
                   fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -503,21 +412,14 @@ const CartPage = () => {
                   color: cart.status === 'active' ? '#22c55e' : '#f59e0b',
                   border: `1px solid ${cart.status === 'active' ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}`,
                   boxShadow: cart.status === 'active' ? '0 0 8px rgba(34,197,94,0.2)' : '0 0 8px rgba(245,158,11,0.2)',
-                }}>
-                  {cart.status}
-                </span>
+                }}>{cart.status}</span>
               )}
             </div>
 
             {/* Add item row */}
             {cart?.status === 'active' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-                style={{
-                  display: 'grid', gridTemplateColumns: '1fr 90px 60px auto',
-                  gap: '0.5rem', marginBottom: '1.5rem',
-                  padding: '1rem', background: 'rgba(249,115,22,0.04)',
-                  borderRadius: 14, border: '1px solid rgba(249,115,22,0.12)',
-                }}>
+                style={{ display: 'grid', gridTemplateColumns: '1fr 90px 60px auto', gap: '0.5rem', marginBottom: '1.5rem', padding: '1rem', background: 'rgba(249,115,22,0.04)', borderRadius: 14, border: '1px solid rgba(249,115,22,0.12)' }}>
                 <input className="food-input" placeholder="🍽️ Item name" value={newItem.itemName}
                   onChange={e => setNewItem({ ...newItem, itemName: e.target.value })}
                   onKeyDown={e => e.key === 'Enter' && handleAdd()} />
@@ -525,20 +427,10 @@ const CartPage = () => {
                   onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
                 <input className="food-input" placeholder="Qty" type="number" min={1} value={newItem.quantity}
                   onChange={e => setNewItem({ ...newItem, quantity: e.target.value })} />
-                <motion.button
-                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                   onClick={handleAdd} disabled={addLoading}
-                  style={{
-                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                    border: 'none', borderRadius: 12, padding: '0 1rem', cursor: 'pointer',
-                    color: '#fff', fontWeight: 800, fontSize: '0.82rem',
-                    fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.08em',
-                    boxShadow: '0 4px 14px rgba(249,115,22,0.4)',
-                    display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap',
-                  }}>
-                  {addLoading
-                    ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}><Loader2 size={14} /></motion.div>
-                    : <><Plus size={14} /> ADD</>}
+                  style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: 12, padding: '0 1rem', cursor: 'pointer', color: '#fff', fontWeight: 800, fontSize: '0.82rem', fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.08em', boxShadow: '0 4px 14px rgba(249,115,22,0.4)', display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}>
+                  {addLoading ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}><Loader2 size={14} /></motion.div> : <><Plus size={14} /> ADD</>}
                 </motion.button>
               </motion.div>
             )}
@@ -551,14 +443,9 @@ const CartPage = () => {
                 </motion.div>
               </div>
             ) : !cart?.items?.length ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-                <motion.div
-                  animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  style={{ fontSize: '3.5rem', marginBottom: '0.75rem', filter: 'drop-shadow(0 0 16px rgba(249,115,22,0.3))' }}>
-                  🛒
-                </motion.div>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                <motion.div animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}
+                  style={{ fontSize: '3.5rem', marginBottom: '0.75rem', filter: 'drop-shadow(0 0 16px rgba(249,115,22,0.3))' }}>🛒</motion.div>
                 <p style={{ fontFamily: "'Bebas Neue', cursive", fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em' }}>Cart is empty</p>
                 <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.2)', marginTop: '0.3rem' }}>Add items above to get started</p>
               </motion.div>
@@ -575,24 +462,11 @@ const CartPage = () => {
 
             {/* Total */}
             {cart?.items?.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  paddingTop: '1.1rem', marginTop: '0.5rem',
-                  borderTop: '1px solid rgba(255,255,255,0.06)',
-                }}>
-                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Grand Total
-                </span>
-                <motion.span
-                  key={cart?.total}
-                  initial={{ scale: 1.2 }} animate={{ scale: 1 }}
-                  style={{
-                    fontFamily: "'Bebas Neue', cursive", fontSize: '1.6rem',
-                    color: '#fbbf24', letterSpacing: '0.04em',
-                    textShadow: '0 0 16px rgba(251,191,36,0.5)',
-                  }}>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Grand Total</span>
+                <motion.span key={cart?.total} initial={{ scale: 1.2 }} animate={{ scale: 1 }}
+                  style={{ fontFamily: "'Bebas Neue', cursive", fontSize: '1.6rem', color: '#fbbf24', letterSpacing: '0.04em', textShadow: '0 0 16px rgba(251,191,36,0.5)' }}>
                   ₹{(cart?.total || 0).toFixed(2)}
                 </motion.span>
               </motion.div>
@@ -607,15 +481,32 @@ const CartPage = () => {
             )}
           </motion.div>
 
-          {/* AI Invoice panel */}
+          {/* AI Invoice panel — admin only, cart active */}
           {isAdmin && cart?.items?.length > 0 && cart?.status === 'active' && (
             <AIInvoicePanel
               groupId={groupId} token={token}
-              onCartUpdate={(data) => {
-                setCart(data.cart);
-                navigate('/checkout-success', { state: { checkoutResult: data } });
-              }}
+              onCartUpdate={(data) => setCart(data.cart)}
             />
+          )}
+
+          {/* ── Pay button — shown when cart already checkedout (members returning to page) ── */}
+          {cart?.status === 'checkedout' && (
+            <motion.button
+              whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(249,115,22,0.3)' }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate(`/payment/${groupId}`)}
+              style={{
+                width: '100%', marginTop: '1rem', padding: '0.9rem',
+                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                border: 'none', borderRadius: 16, cursor: 'pointer',
+                color: '#fff', fontWeight: 700, fontSize: '0.88rem',
+                fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                boxShadow: '0 4px 20px rgba(249,115,22,0.35)', transition: 'all 0.2s',
+              }}>
+              <CreditCard size={16} style={{ filter: 'drop-shadow(0 0 4px rgba(249,115,22,0.6))' }} />
+              PAY YOUR SHARE
+            </motion.button>
           )}
 
           {/* Chat button */}
@@ -625,10 +516,8 @@ const CartPage = () => {
             onClick={() => navigate(`/chat/${groupId}`)}
             style={{
               width: '100%', marginTop: '1rem', padding: '0.9rem',
-              background: 'rgba(129,140,248,0.08)',
-              border: '1px solid rgba(129,140,248,0.2)',
-              borderRadius: 16, cursor: 'pointer',
-              color: '#818cf8', fontWeight: 700, fontSize: '0.88rem',
+              background: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)',
+              borderRadius: 16, cursor: 'pointer', color: '#818cf8', fontWeight: 700, fontSize: '0.88rem',
               fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
               transition: 'all 0.2s',

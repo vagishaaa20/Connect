@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CreditCard, MapPin, Sparkles, Bot, Hash } from 'lucide-react';
+import { Send, CreditCard, MapPin, Sparkles, Bot, Hash, ShoppingCart } from 'lucide-react';
 import io from 'socket.io-client';
 import debounce from 'lodash.debounce';
 import SplitBillModal from '../components/SplitBillModal';
@@ -16,34 +16,6 @@ const AI_COMMANDS = [
   { cmd: '/recommend', label: 'Recommend items', hint: 'Get food suggestions based on the chat', icon: '🍽️' },
   { cmd: '/split', label: 'Split the bill', hint: 'Calculate how to split costs', icon: '💸' },
 ];
-
-const handleAICommand = async (text, messages) => {
-  const cmd = text.trim().toLowerCase();
-  let prompt = '';
-  if (cmd.startsWith('/summarize')) {
-    const last = messages.slice(-20).map(m => `${m.sender?.name}: ${m.text}`).join('\n');
-    prompt = `Summarize this group chat in 2-3 sentences, focusing on what was ordered or planned:\n\n${last}`;
-  } else if (cmd.startsWith('/recommend')) {
-    const last = messages.slice(-15).map(m => m.text).join(' ');
-    prompt = `Based on this college student food group chat, suggest 3 popular items to add to the group order. Be concise and fun:\n\n${last}`;
-  } else if (cmd.startsWith('/split')) {
-    prompt = 'Give a quick tip on how to split a food bill fairly among friends in 1-2 sentences.';
-  } else {
-    prompt = text.replace('/ai', '').trim();
-    if (!prompt) return null;
-  }
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-  const data = await res.json();
-  return data.content?.[0]?.text || 'No response from AI.';
-};
 
 /* ── Ambient orb ── */
 const Orb = ({ style }) => (
@@ -65,9 +37,99 @@ const Particles = () => (
   </div>
 );
 
+/* ── Suggestion cards (for /recommend structured response) ── */
+const SuggestionCards = ({ suggestions, groupId, token }) => {
+  const [added, setAdded] = useState({});
+
+  const addToCart = async (item, price, idx) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ groupId, itemName: item, price, quantity: 1 }),
+      });
+      if (res.ok) setAdded(p => ({ ...p, [idx]: true }));
+      else alert('Failed to add item to cart');
+    } catch (err) {
+      console.error('addToCart error:', err);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '80%' }}
+    >
+      <p style={{
+        fontSize: '0.7rem', marginBottom: '0.1rem', fontWeight: 600,
+        color: '#818cf8', display: 'flex', alignItems: 'center', gap: '0.3rem',
+      }}>
+        <Sparkles size={10} style={{ filter: 'drop-shadow(0 0 3px #818cf8)' }} />
+        CampusAI recommends
+      </p>
+      {suggestions.map((s, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: i * 0.08 }}
+          style={{
+            background: 'linear-gradient(135deg, rgba(129,140,248,0.12), rgba(99,102,241,0.08))',
+            border: '1px solid rgba(129,140,248,0.25)',
+            borderRadius: 14, padding: '0.75rem 1rem',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 16px rgba(129,140,248,0.1)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem' }}>{s.item}</p>
+              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', lineHeight: 1.4 }}>{s.reason}</p>
+              <p style={{ color: '#f97316', fontWeight: 700, fontSize: '0.85rem', marginTop: '0.3rem' }}>₹{s.estimatedPrice}</p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => addToCart(s.item, s.estimatedPrice, i)}
+              disabled={added[i]}
+              style={{
+                flexShrink: 0,
+                background: added[i] ? 'rgba(34,197,94,0.2)' : 'linear-gradient(135deg, #f97316, #ea580c)',
+                border: added[i] ? '1px solid rgba(34,197,94,0.4)' : 'none',
+                borderRadius: 10, padding: '0.4rem 0.75rem',
+                color: added[i] ? '#4ade80' : '#fff',
+                fontSize: '0.75rem', fontWeight: 600, cursor: added[i] ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                boxShadow: added[i] ? 'none' : '0 2px 8px rgba(249,115,22,0.4)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {added[i] ? '✓ Added' : <><ShoppingCart size={12} /> Add</>}
+            </motion.button>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+};
+
 /* ── Message bubble ── */
-const Bubble = ({ msg, isOwn, index }) => {
+const Bubble = ({ msg, isOwn, index, groupId, token }) => {
   const isAI = msg.isAI;
+
+  // Try parsing structured AI response for /recommend
+  if (isAI) {
+    try {
+      const structured = JSON.parse(msg.text);
+      if (structured?.suggestions) {
+        return <SuggestionCards suggestions={structured.suggestions} groupId={groupId} token={token} />;
+      }
+    } catch {}
+  }
+
   const bubbleBg = isOwn
     ? 'linear-gradient(135deg, #f97316, #ea580c)'
     : isAI
@@ -82,7 +144,6 @@ const Bubble = ({ msg, isOwn, index }) => {
       transition={{ type: 'spring', stiffness: 300, damping: 24, delay: Math.min(index * 0.03, 0.3) }}
       style={{ display: 'flex', flexDirection: isOwn ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '0.5rem' }}
     >
-      {/* Avatar */}
       {!isOwn && (
         <motion.div
           whileHover={{ scale: 1.1 }}
@@ -100,7 +161,8 @@ const Bubble = ({ msg, isOwn, index }) => {
 
       <div style={{ maxWidth: '68%' }}>
         {!isOwn && (
-          <p style={{ fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600, letterSpacing: '0.04em',
+          <p style={{
+            fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600, letterSpacing: '0.04em',
             color: isAI ? '#818cf8' : 'rgba(255,255,255,0.4)',
             textShadow: isAI ? '0 0 8px rgba(129,140,248,0.5)' : 'none',
             display: 'flex', alignItems: 'center', gap: '0.3rem',
@@ -174,6 +236,10 @@ const ChatPage = () => {
   const endRef = useRef(null);
   const inputRef = useRef(null);
   const messagesRef = useRef(null);
+  const aiTimeoutRef = useRef(null);
+
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
 
   const scrollToBottom = () => endRef.current?.scrollIntoView({ behavior: 'smooth' });
 
@@ -184,13 +250,28 @@ const ChatPage = () => {
   useEffect(() => {
     if (!socket.connected) socket.connect();
     socket.emit('joinGroup', groupId);
-    socket.on('newMessage', msg => setMessages(p => [...p, msg]));
+
+    socket.on('newMessage', msg => {
+      setMessages(p => [...p, msg]);
+      if (msg.isAI) {
+        setAiLoading(false);
+        if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+      }
+    });
+
     socket.on('userTyping', ({ userId }) => {
       setTypingUsers(p => [...new Set([...p, userId])]);
       setTimeout(() => setTypingUsers(p => p.filter(u => u !== userId)), 1400);
     });
+
     socket.on('recentMessages', msgs => setMessages(msgs));
-    socket.on('errorMessage', alert);
+
+    socket.on('errorMessage', (msg) => {
+      setAiLoading(false);
+      if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+      alert(msg);
+    });
+
     return () => {
       socket.off('newMessage');
       socket.off('userTyping');
@@ -201,21 +282,22 @@ const ChatPage = () => {
 
   useEffect(() => { scrollToBottom(); }, [messages, typingUsers]);
 
-  const handleSend = async () => {
+  useEffect(() => {
+    return () => { if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current); };
+  }, []);
+
+  const handleSend = () => {
     if (!text.trim()) return;
     const raw = text.trim();
     setText(''); setShowCommands(false);
+
     const isAICmd = ['/summarize', '/recommend', '/split', '/ai'].some(c => raw.startsWith(c));
     if (isAICmd) {
-      setMessages(p => [...p, { _id: Date.now(), text: raw, sender: { _id: localStorage.getItem('userId'), name: 'You' }, createdAt: new Date() }]);
       setAiLoading(true);
-      try {
-        const reply = await handleAICommand(raw, messages);
-        if (reply) setMessages(p => [...p, { _id: Date.now() + 1, text: reply, isAI: true, sender: { name: 'CampusAI' }, createdAt: new Date() }]);
-      } catch { } finally { setAiLoading(false); }
-    } else {
-      socket.emit('sendMessage', { groupId, text: raw });
+      aiTimeoutRef.current = setTimeout(() => setAiLoading(false), 15000);
     }
+
+    socket.emit('sendMessage', { groupId, text: raw });
   };
 
   const handleInput = (e) => {
@@ -224,8 +306,6 @@ const ChatPage = () => {
     setShowCommands(val.startsWith('/'));
     emitTyping();
   };
-
-  const userId = localStorage.getItem('userId');
 
   return (
     <>
@@ -236,7 +316,6 @@ const ChatPage = () => {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.2); border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(249,115,22,0.4); }
-        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse-glow {
           0%,100% { box-shadow: 0 0 8px rgba(249,115,22,0.3); }
           50% { box-shadow: 0 0 20px rgba(249,115,22,0.7); }
@@ -260,7 +339,6 @@ const ChatPage = () => {
 
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#080a0f', fontFamily: "'DM Sans', sans-serif", position: 'relative', overflow: 'hidden' }}>
 
-        {/* Ambient */}
         <Orb style={{ width: 500, height: 500, background: '#f97316', top: -200, left: -200, opacity: 0.04 }} />
         <Orb style={{ width: 400, height: 400, background: '#818cf8', bottom: -100, right: -100, opacity: 0.04 }} />
         <Particles />
@@ -279,9 +357,7 @@ const ChatPage = () => {
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', padding: '0.25rem', transition: 'color 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.color = '#f97316'}
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-          >
-            ←
-          </motion.button>
+          >←</motion.button>
 
           <div style={{
             width: 38, height: 38, borderRadius: 12,
@@ -302,7 +378,6 @@ const ChatPage = () => {
             </p>
           </div>
 
-          {/* Message count pill */}
           <span style={{
             fontSize: '0.68rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: 99,
             background: 'rgba(249,115,22,0.12)', color: '#f97316',
@@ -342,7 +417,14 @@ const ChatPage = () => {
           )}
 
           {messages.map((msg, i) => (
-            <Bubble key={msg._id} msg={msg} isOwn={msg.sender?._id?.toString() === userId} index={i} />
+            <Bubble
+              key={msg._id}
+              msg={msg}
+              isOwn={msg.sender?._id?.toString() === userId}
+              index={i}
+              groupId={groupId}
+              token={token}
+            />
           ))}
 
           <AnimatePresence>
@@ -419,7 +501,6 @@ const ChatPage = () => {
             display: 'flex', gap: '0.6rem', alignItems: 'center',
             zIndex: 10, position: 'relative',
           }}>
-          {/* AI hint */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             onClick={() => { setText('/'); setShowCommands(true); inputRef.current?.focus(); }}

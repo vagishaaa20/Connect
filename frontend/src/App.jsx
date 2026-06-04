@@ -8,6 +8,7 @@ import CartPage from './pages/CartPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import { ThemeProvider } from './context/ThemeContext';
 import RidePage from './pages/RidePage';
+import PaymentPage from './pages/PaymentPage';
 
 
 
@@ -25,6 +26,7 @@ function App() {
                     <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
                     <Route path="/rides" element={<RidePage />} />
                     <Route path="/ride/:id" element={<RidePage />} />
+                    <Route path="/payment/:groupId" element={<PaymentPage />} />
                 </Routes>
             </div>
         </Router>

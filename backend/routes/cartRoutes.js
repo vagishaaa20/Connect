@@ -1,9 +1,11 @@
 import express from "express";
-import { addItemToCart, removeItemFromCart, viewCart, checkoutCart,uploadInvoice } from "../controllers/cartController.js";
+import { addItemToCart, removeItemFromCart, viewCart, checkoutCart,uploadInvoice, parseInvoiceAI } from "../controllers/cartController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+
+router.post('/parse-invoice-ai', protect, parseInvoiceAI);
 router.post("/add", protect, addItemToCart);
 router.post("/remove", protect, removeItemFromCart);
 router.get("/:groupId", protect, viewCart);
