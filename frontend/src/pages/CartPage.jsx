@@ -11,7 +11,6 @@ import Navbar from '../components/Navbar';
 
 const API = 'http://localhost:5000';
 
-/* ── Floating food particles ── */
 const FOODS = ['🍕', '🍜', '🍔', '☕', '🥤', '🍣', '🧆', '🍩', '🥗', '🌮'];
 const FoodParticles = () => (
   <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -26,7 +25,6 @@ const FoodParticles = () => (
   </div>
 );
 
-/* ── Steam animation ── */
 const Steam = () => (
   <div style={{ position: 'absolute', top: -18, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 3, pointerEvents: 'none' }}>
     {[0, 1, 2].map(i => (
@@ -39,7 +37,6 @@ const Steam = () => (
   </div>
 );
 
-/* ── Glowing stat chip ── */
 const StatChip = ({ icon, label, value, color }) => (
   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
     whileHover={{ scale: 1.05, y: -2 }}
@@ -49,12 +46,7 @@ const StatChip = ({ icon, label, value, color }) => (
       display: 'flex', alignItems: 'center', gap: '0.7rem',
       backdropFilter: 'blur(12px)', boxShadow: `0 0 20px ${color}11`, cursor: 'default',
     }}>
-    <div style={{
-      width: 38, height: 38, borderRadius: 10,
-      background: `${color}15`, border: `1px solid ${color}44`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '1.1rem', boxShadow: `0 0 10px ${color}44`,
-    }}>{icon}</div>
+    <div style={{ width: 38, height: 38, borderRadius: 10, background: `${color}15`, border: `1px solid ${color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', boxShadow: `0 0 10px ${color}44` }}>{icon}</div>
     <div>
       <p style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: "'Bebas Neue', cursive", color, lineHeight: 1, letterSpacing: '0.04em', textShadow: `0 0 10px ${color}66` }}>{value}</p>
       <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: 1, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
@@ -62,7 +54,6 @@ const StatChip = ({ icon, label, value, color }) => (
   </motion.div>
 );
 
-/* ── Item row ── */
 const ItemRow = ({ item, onRemove, isOwn, index }) => {
   const isHighPrice = item.price > 200;
   return (
@@ -75,12 +66,7 @@ const ItemRow = ({ item, onRemove, isOwn, index }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
         <div style={{ position: 'relative' }}>
           {isHighPrice && <Steam />}
-          <div style={{
-            width: 44, height: 44, borderRadius: 12,
-            background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.3rem', boxShadow: '0 0 12px rgba(249,115,22,0.15)',
-          }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', boxShadow: '0 0 12px rgba(249,115,22,0.15)' }}>
             {item.image && !item.image.includes('placeholder') && !item.image.includes('via.placeholder')
               ? <img src={item.image} alt={item.itemName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
               : '🍽️'}
@@ -88,9 +74,7 @@ const ItemRow = ({ item, onRemove, isOwn, index }) => {
         </div>
         <div>
           <p style={{ fontWeight: 600, fontSize: '0.95rem', color: '#fff' }}>{item.itemName}</p>
-          <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', marginTop: 2 }}>
-            ₹{item.price} × {item.quantity}
-          </p>
+          <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', marginTop: 2 }}>₹{item.price} × {item.quantity}</p>
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -100,12 +84,7 @@ const ItemRow = ({ item, onRemove, isOwn, index }) => {
         {isOwn && (
           <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
             onClick={() => onRemove(item.itemName)}
-            style={{
-              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-              borderRadius: 8, padding: '0.35rem', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#ef4444', transition: 'all 0.2s',
-            }}
+            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '0.35rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.2)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(239,68,68,0.3)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
           >
@@ -133,7 +112,7 @@ const parseInvoiceWithAI = async (file, token) => {
   return await response.json();
 };
 
-const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
+const AIInvoicePanel = ({ groupId, token, onCartUpdate }) => {
   const [file, setFile] = useState(null);
   const [stage, setStage] = useState('idle');
   const [parsedResult, setParsedResult] = useState(null);
@@ -150,12 +129,12 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
     try {
       const result = await parseInvoiceWithAI(file, token);
       if (result.error) throw new Error(result.error);
+      if (result.retryAfter) throw new Error('AI is busy — wait 30 seconds and try again');
       setParsedResult(result); setStage('parsed');
     } catch (e) { setErrorMsg(e.message || 'AI could not parse this invoice.'); setStage('error'); }
   };
 
   const handleCheckout = async () => {
-    console.log('groupId:', groupId, 'file:', file?.name);
     setStage('uploading');
     const formData = new FormData();
     formData.append('invoice', file);
@@ -165,18 +144,36 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
       });
       onCartUpdate(res.data);
-      setStage('done');
+      // Navigate directly to payment page
+      navigate(`/payment/${groupId}`);
     } catch (e) { setErrorMsg(e.response?.data?.message || 'Checkout failed.'); setStage('error'); }
+  };
+
+  const handleQuickCheckout = async () => {
+    setStage('uploading');
+    setErrorMsg('');
+    try {
+      const res = await fetch(`${API}/api/cart/quick-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ groupId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      onCartUpdate(data);
+      // Navigate directly to payment page
+      navigate(`/payment/${groupId}`);
+    } catch (e) {
+      setErrorMsg(e.message || 'Quick checkout failed.');
+      setStage('error');
+    }
   };
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-      style={{
-        background: 'linear-gradient(135deg, rgba(251,191,36,0.04), rgba(249,115,22,0.04))',
-        border: '1px solid rgba(251,191,36,0.15)',
-        borderRadius: 20, padding: '1.5rem', marginTop: '1.25rem',
-        boxShadow: '0 0 40px rgba(251,191,36,0.05)',
-      }}>
+      style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.04), rgba(249,115,22,0.04))', border: '1px solid rgba(251,191,36,0.15)', borderRadius: 20, padding: '1.5rem', marginTop: '1.25rem', boxShadow: '0 0 40px rgba(251,191,36,0.05)' }}>
+
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', marginBottom: '1.1rem' }}>
         <motion.div animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }} transition={{ duration: 3, repeat: Infinity }}
           style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #fbbf24, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(251,191,36,0.5)' }}>
@@ -189,25 +186,34 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
         <span style={{ marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: 99, background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Admin Only</span>
       </div>
 
+      {/* Quick checkout button */}
+      {stage === 'idle' && (
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          onClick={handleQuickCheckout}
+          style={{ width: '100%', padding: '0.75rem', marginBottom: '0.75rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, cursor: 'pointer', color: 'rgba(255,255,255,0.55)', fontWeight: 700, fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.88rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+        >
+          <ReceiptText size={14} /> QUICK CHECKOUT (USE CART PRICES)
+        </motion.button>
+      )}
+
       {/* Drop zone */}
-      <motion.div onClick={() => fileRef.current?.click()} onDrop={handleDrop}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
-        animate={{ borderColor: dragOver ? '#fbbf24' : file ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.08)' }}
-        style={{
-          border: `2px dashed ${file ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.08)'}`,
-          borderRadius: 14, padding: '1.4rem', textAlign: 'center', cursor: 'pointer',
-          background: file ? 'rgba(249,115,22,0.06)' : dragOver ? 'rgba(251,191,36,0.04)' : 'rgba(255,255,255,0.02)',
-          transition: 'all 0.2s', marginBottom: '0.9rem',
-        }}>
-        <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
-        <motion.div animate={{ y: file ? 0 : [0, -4, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-          <Upload size={22} style={{ color: file ? '#f97316' : 'rgba(255,255,255,0.25)', margin: '0 auto 0.4rem', filter: file ? 'drop-shadow(0 0 6px #f97316)' : 'none' }} />
+      {stage === 'idle' && (
+        <motion.div onClick={() => fileRef.current?.click()} onDrop={handleDrop}
+          onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
+          animate={{ borderColor: dragOver ? '#fbbf24' : file ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.08)' }}
+          style={{ border: `2px dashed ${file ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: '1.4rem', textAlign: 'center', cursor: 'pointer', background: file ? 'rgba(249,115,22,0.06)' : dragOver ? 'rgba(251,191,36,0.04)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: '0.9rem' }}>
+          <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
+          <motion.div animate={{ y: file ? 0 : [0, -4, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+            <Upload size={22} style={{ color: file ? '#f97316' : 'rgba(255,255,255,0.25)', margin: '0 auto 0.4rem', filter: file ? 'drop-shadow(0 0 6px #f97316)' : 'none' }} />
+          </motion.div>
+          <p style={{ fontSize: '0.84rem', color: file ? '#f97316' : 'rgba(255,255,255,0.25)', fontWeight: 500 }}>
+            {file ? file.name : 'Drop invoice here or click to upload'}
+          </p>
+          {!file && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.15)', marginTop: '0.2rem' }}>PNG, JPG, PDF supported</p>}
         </motion.div>
-        <p style={{ fontSize: '0.84rem', color: file ? '#f97316' : 'rgba(255,255,255,0.25)', fontWeight: 500 }}>
-          {file ? file.name : 'Drop invoice here or click to upload'}
-        </p>
-        {!file && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.15)', marginTop: '0.2rem' }}>PNG, JPG, PDF supported</p>}
-      </motion.div>
+      )}
 
       {/* Parse button */}
       {file && stage === 'idle' && (
@@ -217,11 +223,13 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
         </motion.button>
       )}
 
-      {/* Parsing state */}
-      {stage === 'parsing' && (
+      {/* Uploading / parsing state */}
+      {(stage === 'parsing' || stage === 'uploading') && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.85rem', background: 'rgba(251,191,36,0.06)', borderRadius: 12, marginBottom: '0.75rem', border: '1px solid rgba(251,191,36,0.15)' }}>
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}><Loader2 size={16} color="#fbbf24" /></motion.div>
-          <span style={{ fontSize: '0.85rem', color: '#fbbf24' }}>AI is reading your invoice…</span>
+          <span style={{ fontSize: '0.85rem', color: '#fbbf24' }}>
+            {stage === 'parsing' ? 'AI is reading your invoice…' : 'Processing checkout…'}
+          </span>
         </div>
       )}
 
@@ -258,30 +266,22 @@ const AIInvoicePanel = ({ groupId, token, onCartUpdate, onCheckoutDone }) => {
         </div>
       )}
 
-      {/* Checkout button */}
+      {/* Confirm checkout button — after AI parse */}
       {(stage === 'parsed' || stage === 'error') && file && (
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-          onClick={handleCheckout} disabled={stage === 'uploading'}
+          onClick={handleCheckout}
           style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#fff', fontWeight: 800, fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-          {stage === 'uploading'
-            ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}><Loader2 size={15} /></motion.div> Processing…</>
-            : <><ReceiptText size={15} /> CONFIRM CHECKOUT</>}
+          <ReceiptText size={15} /> CONFIRM CHECKOUT
         </motion.button>
       )}
 
-      {/* ── Checkout done — show success + Pay button ── */}
-      {stage === 'done' && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div style={{ textAlign: 'center', padding: '0.75rem', color: '#22c55e', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-            <CheckCircle2 size={18} style={{ filter: 'drop-shadow(0 0 6px #22c55e)' }} /> Checkout complete!
-          </div>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-            onClick={() => navigate(`/payment/${groupId}`)}
-            style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: 12, cursor: 'pointer', color: '#fff', fontWeight: 800, fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(249,115,22,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <CreditCard size={15} /> PAY YOUR SHARE
-          </motion.button>
-        </motion.div>
+      {/* Retry button on error for quick checkout */}
+      {stage === 'error' && !file && (
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          onClick={() => { setStage('idle'); setErrorMsg(''); }}
+          style={{ width: '100%', padding: '0.75rem', marginTop: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, cursor: 'pointer', color: 'rgba(255,255,255,0.5)', fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', fontSize: '0.88rem' }}>
+          TRY AGAIN
+        </motion.button>
       )}
     </motion.div>
   );
@@ -347,12 +347,9 @@ const CartPage = () => {
         .food-input:focus { border-color: rgba(249,115,22,0.5); box-shadow: 0 0 0 3px rgba(249,115,22,0.08); }
         .food-input::placeholder { color: rgba(255,255,255,0.2); }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes shimmer { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: '#080a0f', fontFamily: "'DM Sans', sans-serif", position: 'relative', overflow: 'hidden' }}>
-
-        {/* Ambient glows */}
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
           <div style={{ position: 'absolute', top: -200, left: -100, width: 600, height: 600, borderRadius: '50%', background: '#f97316', filter: 'blur(160px)', opacity: 0.04 }} />
           <div style={{ position: 'absolute', bottom: -100, right: -100, width: 500, height: 500, borderRadius: '50%', background: '#fbbf24', filter: 'blur(140px)', opacity: 0.04 }} />
@@ -473,8 +470,8 @@ const CartPage = () => {
             )}
 
             {/* Invoice link */}
-            {cart?.invoice && (
-              <a href={cart.invoice} target="_blank" rel="noopener noreferrer"
+            {cart?.invoiceUrl && (
+              <a href={cart.invoiceUrl} target="_blank" rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem', fontSize: '0.82rem', color: '#818cf8', textDecoration: 'none', filter: 'drop-shadow(0 0 4px rgba(129,140,248,0.4))' }}>
                 <ExternalLink size={13} /> View Invoice
               </a>
@@ -484,26 +481,21 @@ const CartPage = () => {
           {/* AI Invoice panel — admin only, cart active */}
           {isAdmin && cart?.items?.length > 0 && cart?.status === 'active' && (
             <AIInvoicePanel
-              groupId={groupId} token={token}
-              onCartUpdate={(data) => setCart(data.cart)}
+              groupId={groupId}
+              token={token}
+              onCartUpdate={(data) => {
+                if (data.cart) setCart(data.cart);
+              }}
             />
           )}
 
-          {/* ── Pay button — shown when cart already checkedout (members returning to page) ── */}
+          {/* Pay button — shown when cart is checkedout (members returning) */}
           {cart?.status === 'checkedout' && (
             <motion.button
               whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(249,115,22,0.3)' }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(`/payment/${groupId}`)}
-              style={{
-                width: '100%', marginTop: '1rem', padding: '0.9rem',
-                background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                border: 'none', borderRadius: 16, cursor: 'pointer',
-                color: '#fff', fontWeight: 700, fontSize: '0.88rem',
-                fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                boxShadow: '0 4px 20px rgba(249,115,22,0.35)', transition: 'all 0.2s',
-              }}>
+              style={{ width: '100%', marginTop: '1rem', padding: '0.9rem', background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: 16, cursor: 'pointer', color: '#fff', fontWeight: 700, fontSize: '0.88rem', fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 20px rgba(249,115,22,0.35)', transition: 'all 0.2s' }}>
               <CreditCard size={16} style={{ filter: 'drop-shadow(0 0 4px rgba(249,115,22,0.6))' }} />
               PAY YOUR SHARE
             </motion.button>
@@ -514,14 +506,7 @@ const CartPage = () => {
             whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(129,140,248,0.25)' }}
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate(`/chat/${groupId}`)}
-            style={{
-              width: '100%', marginTop: '1rem', padding: '0.9rem',
-              background: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)',
-              borderRadius: 16, cursor: 'pointer', color: '#818cf8', fontWeight: 700, fontSize: '0.88rem',
-              fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              transition: 'all 0.2s',
-            }}>
+            style={{ width: '100%', marginTop: '1rem', padding: '0.9rem', background: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', borderRadius: 16, cursor: 'pointer', color: '#818cf8', fontWeight: 700, fontSize: '0.88rem', fontFamily: "'Bebas Neue', cursive", letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s' }}>
             <MessageCircle size={16} style={{ filter: 'drop-shadow(0 0 4px #818cf8)' }} />
             OPEN GROUP CHAT
           </motion.button>

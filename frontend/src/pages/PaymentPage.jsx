@@ -12,6 +12,14 @@ const PaymentPage = () => {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
 
+useEffect(() => {
+  const script = document.createElement('script');
+  script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+  script.async = true;
+  document.body.appendChild(script);
+  return () => document.body.removeChild(script);
+}, []);
+
   const fetchStatus = async () => {
     try {
       const res = await fetch(`http://localhost:5000/api/payments/status/${groupId}`, {

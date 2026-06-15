@@ -12,6 +12,9 @@ export const createPaymentOrder = async (req, res) => {
   try {
     const { groupId } = req.body;
     const userId = req.user._id;
+ 
+    console.log('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID ? 'exists' : 'MISSING');
+    console.log('groupId:', groupId, 'userId:', userId);
 
     const cart = await Cart.findOne({ groupId, status: 'checkedout' });
     if (!cart) return res.status(404).json({ message: 'No checked out cart found' });
@@ -32,7 +35,7 @@ export const createPaymentOrder = async (req, res) => {
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100),
       currency: 'INR',
-      receipt: `receipt_${groupId}_${userId}`,
+      receipt: `r_${Date.now().toString().slice(-10)}`,
     });
 
     // Upsert payment record
@@ -65,6 +68,7 @@ export const createPaymentOrder = async (req, res) => {
       },
     });
   } catch (err) {
+     console.error('createPaymentOrder error:', err);
     console.error('createPaymentOrder error:', err.message);
     res.status(500).json({ message: err.message });
   }

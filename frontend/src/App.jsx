@@ -3,13 +3,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RoomPage from './pages/RoomPage';
 import ChatPage from './pages/ChatPage';
-import TrackingAndNotFound from './pages/TrackingAndNotFound';
+import TrackingAndNotFound, { TrackingPage } from './pages/TrackingPage';
 import CartPage from './pages/CartPage';
-import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import { ThemeProvider } from './context/ThemeContext';
 import RidePage from './pages/RidePage';
 import PaymentPage from './pages/PaymentPage';
-
+import RidePaymentPage from './pages/RidePaymentPage';
 
 
 function App() {
@@ -21,12 +20,12 @@ function App() {
                     <Route path="/" element={<LoginPage />} />
                     <Route path="/rooms" element={<RoomPage />} />
                     <Route path="/room/:groupId" element={<CartPage />} />
-                    <Route path="/track/:id" element={<TrackingAndNotFound />} />
+                    <Route path="/rides/track/:id" element={<TrackingPage />} />
                     <Route path="/chat/:groupId" element={<ChatPage />} />
-                    <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
                     <Route path="/rides" element={<RidePage />} />
                     <Route path="/ride/:id" element={<RidePage />} />
                     <Route path="/payment/:groupId" element={<PaymentPage />} />
+                    <Route path="/rides/payment/:rideId" element={<RidePaymentPage />} />
                 </Routes>
             </div>
         </Router>

@@ -12,11 +12,13 @@
   "dependencies": {
     "axios": "^1.9.0",
     "framer-motion": "^11.2.10",
+    "leaflet": "^1.9.4",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.511.0",
     "razorpay": "^2.9.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^6.23.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
