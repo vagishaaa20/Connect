@@ -22,9 +22,6 @@ app.use(express.json({limit: '50mb' }));
 app.use(express.urlencoded({limit: '50mb' , extended: true }));
 app.use(cors());
 
-// Attach io to every request so controllers can emit socket events
-app.use((req, res, next) => { req.io = io; next(); });
-
 // MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI)
@@ -45,6 +42,9 @@ app.get("/", (req, res) => res.send("Server running"));
 // HTTP server + Socket.io
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
+
+// Attach io to every request so controllers can emit socket events
+app.use((req, res, next) => { req.io = io; next(); });
 
 // Initialize chat and cron jobs
 initChat(io);

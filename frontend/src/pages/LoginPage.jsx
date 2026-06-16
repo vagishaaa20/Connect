@@ -175,7 +175,7 @@ const Field = ({ id, label, type, placeholder, value, onChange }) => (
 ══════════════════════════════════════ */
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', phone: '', address: '', defaultUpi: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', phone: '', address: '', upiId: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -192,7 +192,7 @@ const LoginPage = () => {
         await login(formData.email, formData.password);
         navigate('/rooms');
       } else {
-        const ok = await register({ name: formData.username, email: formData.email, password: formData.password, phone: formData.phone, address: formData.address, defaultUpi: formData.defaultUpi });
+        const ok = await register({ name: formData.username, email: formData.email, password: formData.password, phone: formData.phone, address: formData.address, upiId: formData.upiId });
         if (ok) { setSuccess('Account created! Please log in.'); setIsLogin(true); }
       }
     } catch (err) {
@@ -210,7 +210,7 @@ const LoginPage = () => {
     { id: 'password', label: 'Password', type: 'password', placeholder: '••••••••••' },
     { id: 'phone', label: 'Phone', type: 'tel', placeholder: '+91 98765 43210' },
     { id: 'address', label: 'Hostel / Address', type: 'text', placeholder: 'Block B, Room 204' },
-    { id: 'defaultUpi', label: 'UPI ID (optional)', type: 'text', placeholder: 'name@upi' },
+    { id: 'upiId', label: 'UPI ID (optional)', type: 'text', placeholder: 'name@upi' },
   ];
   const fields = isLogin ? loginFields : signupFields;
 

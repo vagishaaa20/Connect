@@ -3,12 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RoomPage from './pages/RoomPage';
 import ChatPage from './pages/ChatPage';
-import TrackingAndNotFound, { TrackingPage } from './pages/TrackingPage';
+import  TrackingPage  from './pages/TrackingPage';
 import CartPage from './pages/CartPage';
 import { ThemeProvider } from './context/ThemeContext';
 import RidePage from './pages/RidePage';
 import PaymentPage from './pages/PaymentPage';
 import RidePaymentPage from './pages/RidePaymentPage';
+import ProfilePage from './pages/ProfilePage';
 
 
 function App() {
@@ -26,6 +27,8 @@ function App() {
                     <Route path="/ride/:id" element={<RidePage />} />
                     <Route path="/payment/:groupId" element={<PaymentPage />} />
                     <Route path="/rides/payment/:rideId" element={<RidePaymentPage />} />
+                    <Route path="/rides/chat/:groupId" element={<ChatPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
                 </Routes>
             </div>
         </Router>

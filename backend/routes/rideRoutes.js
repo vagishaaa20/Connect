@@ -1,5 +1,5 @@
 import express from 'express'; 
-import {   createRide,   getNearbyRides,   joinRide,   completeRide,   createRidePaymentOrder,   verifyRidePayment,   getRidePaymentStatus, getRideById} 
+import {   createRide,   getNearbyRides,   joinRide,   completeRide,   createRidePaymentOrder,   verifyRidePayment,   getRidePaymentStatus, getRideById, getRide } 
 from '../controllers/rideController.js'; import { protect } 
 from '../middleware/authMiddleware.js';  
 
@@ -15,4 +15,5 @@ const router = express.Router();
   router.get('/payment/status/:rideId', getRidePaymentStatus); 
 // must be last — generic /:id will catch everything above it if placed first
 router.get('/:id', protect, getRideById);
+router.get('/:rideId', getRide);  
     export default router; 

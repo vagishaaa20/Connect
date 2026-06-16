@@ -8,7 +8,7 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 // REGISTER
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone, address, defaultUpi } = req.body;
+    const { name, email, password, phone, address, upiId } = req.body;
 
     if (!name || !email || !password)
       return res.status(400).json({ message: "Missing required fields" });
@@ -16,7 +16,7 @@ export const registerUser = async (req, res) => {
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ message: "User already exists" });
 
-    const user = new User({ name, email, password, phone, address, defaultUpi });
+    const user = new User({ name, email, password, phone, address, upiId });
 
     // Optional: geocode address
     if (address) {
@@ -52,5 +52,38 @@ export const loginUser = async (req, res) => {
   } catch (err) {
     console.error("Login Error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET profile
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+ 
+// UPDATE profile (name, phone, address, upiId)
+export const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+ 
+    if (req.body.name    !== undefined) user.name    = req.body.name;
+    if (req.body.phone   !== undefined) user.phone   = req.body.phone;
+    if (req.body.address !== undefined) user.address = req.body.address;
+    if (req.body.upiId   !== undefined) user.upiId   = req.body.upiId; 
+    if (req.body.address) {
+      const geo = await geocodeAddressOSM(req.body.address);
+      if (geo) user.location = { type: 'Point', coordinates: [geo.lng, geo.lat] };
+    }
+ 
+    const saved = await user.save();
+    res.json({ user: { ...saved.toObject(), password: undefined } });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

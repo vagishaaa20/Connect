@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const CartSchema = new mongoose.Schema({
-  groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
+  groupId: { type:  mongoose.Schema.Types.Mixed, ref: 'Group' },
   items: [
     {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

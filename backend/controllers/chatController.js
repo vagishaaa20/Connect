@@ -120,8 +120,10 @@ Return ONLY this JSON, no explanation, no markdown:
     prompt = `Summarize what's been discussed in this group chat in 3-4 sentences. Focus on what was ordered or planned.`;
 
   } else if (text.startsWith('/split')) {
-    const cart = await Cart.findOne({ groupId, status: 'active' }).populate('items.userId', 'name');
-    if (!cart) return { type: 'agent_reply', text: 'No active cart found for this group.' };
+    let cart = await Cart.findOne({ groupId, status: 'active' }).populate('items.userId', 'name');
+if (!cart) {
+  cart = await Cart.create({ groupId, items: [], total: 0, status: 'active' });
+}
     const perUser = {};
     cart.items.forEach(item => {
       const name = item.userId?.name || 'Unknown';
@@ -218,6 +220,7 @@ export const initChat = (io) => {
       try {
         const rideId = roomId.replace('ride_', '');
         const ride = await Ride.findById(rideId);
+        
         if (!ride) return socket.emit('errorMessage', 'Ride not found');
 
         const userId = socket.userId;
@@ -253,7 +256,7 @@ export const initChat = (io) => {
 
         const user = await User.findById(socket.userId);
         const userName = user?.name || 'User';
-
+        console.log('>>> TEXT:', text, '| INTENT:', detectOrderIntent(text));
         if (detectOrderIntent(text)) {
           const userMsg = await Message.create({ groupId, sender: socket.userId, text });
           const populatedUserMsg = await userMsg.populate('sender', 'name _id');

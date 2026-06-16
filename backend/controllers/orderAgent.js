@@ -5,6 +5,7 @@ import { aiText } from '../helpers/aiHelper.js';
 
 // ── Intent patterns the agent recognises ─────────────────────────────────────
 const ORDER_INTENT_PATTERNS = [
+  // ── existing usual/repeat patterns ────────────────────────────────────────
   /order what i (normally|usually|always) (eat|get|have|order)/i,
   /get me (the |my )?(usual|same as (always|last time|before))/i,
   /add my (usual|regular|normal) (order|items|food)/i,
@@ -12,6 +13,13 @@ const ORDER_INTENT_PATTERNS = [
   /same as (last time|always|usual)/i,
   /repeat (my |last |previous )?(order|items)/i,
   /(just )?order (the )?usual/i,
+
+  // ── NEW: direct order patterns ────────────────────────────────────────────
+  /i (want|need|would like|wanna|ll have)\s+\d*\s*\w+/i,   // "I want 2 burgers"
+  /can i (get|have|order)\s+\d*\s*\w+/i,                   // "can I get a pizza"
+  /add\s+\d+\s+\w+\s+(to (the |my )?cart)?/i,              // "add 2 burgers to cart"
+  /order\s+\d*\s*\w+/i,                                     // "order 1 burger"
+  /get me\s+\d*\s*\w+/i,                                    // "get me a burger"
 ];
 
 export const detectOrderIntent = (text) =>
@@ -19,6 +27,33 @@ export const detectOrderIntent = (text) =>
 
 // ── Core agent: resolve intent → confirm → execute ───────────────────────────
 export const runOrderAgent = async ({ userId, groupId, text, io }) => {
+
+  // ── Direct order intent: "I want 2 burgers" ──────────────────────────────
+  const directMatch = text.match(
+    /(?:i want|i need|i'll have|can i get|can i have|get me|order)\s+(\d+)?\s*([a-zA-Z\s]+)/i
+  );
+  if (directMatch) {
+    const quantity = parseInt(directMatch[1]) || 1;
+    const itemName = directMatch[2].trim();
+
+    let cart = await Cart.findOne({ groupId, status: 'active' });
+if (!cart) {
+  cart = await Cart.create({ groupId, items: [], total: 0, status: 'active' });
+}
+
+    return {
+      type: 'agent_confirm',
+      text: `Got it! Add ${quantity}x ${itemName} to the group cart?`,
+      payload: {
+        action: 'add_direct_items',
+        groupId,
+        userId: userId.toString(),
+        items: [{ itemName, quantity, price: 0 }],
+      },
+    };
+  }
+
+  // ── existing usual/memory logic below (unchanged) ─────────────────────────
   const memory = await UserMemory.findOne({ userId });
 
   if (!memory || memory.frequentItems.length === 0) {
@@ -28,13 +63,10 @@ export const runOrderAgent = async ({ userId, groupId, text, io }) => {
     };
   }
 
-  const cart = await Cart.findOne({ groupId, status: 'active' });
-  if (!cart) {
-    return {
-      type: 'agent_reply',
-      text: "There's no active cart for this group right now. Ask the admin to create one first!",
-    };
-  }
+  let cart = await Cart.findOne({ groupId, status: 'active' });
+if (!cart) {
+  cart = await Cart.create({ groupId, items: [], total: 0, status: 'active' });
+}
 
   const topItems = memory.frequentItems.slice(0, 3);
 

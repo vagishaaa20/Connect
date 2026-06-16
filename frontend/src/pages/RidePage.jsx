@@ -196,7 +196,7 @@ const RideCard = ({ ride, onJoin, onComplete, index }) => {
             {/* CHAT — members (creator or passenger) who have already joined */}
             {(isCreator || isPassenger) && (
               <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                onClick={() => navigate(`/rides/chat/${ride._id}`)}
+                onClick={() => navigate(`/rides/chat/ride_${ride._id}`)}
                 style={{ ...actionBtn('rgba(129,140,248,0.12)', '#818cf8', '1px solid rgba(129,140,248,0.35)', '0 0 14px rgba(129,140,248,0.2)'), flex: 1 }}>
                 <MessageCircle size={13} /> Chat
               </motion.button>
@@ -289,7 +289,7 @@ const RidePage = () => {
     try {
       await axios.post(`${API}/api/rides/join`, { rideId }, { headers: { Authorization: `Bearer ${token}` } });
       fetchRides();
-      navigate(`/rides/chat/${rideId}`);
+      navigate(`/rides/chat/ride_${ride._id}`);
     } catch (err) { alert(err.response?.data?.message || 'Could not join'); }
   };
 

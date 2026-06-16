@@ -137,7 +137,7 @@ export const completeRide = async (req, res) => {
 
     const ride = await rideModel
       .findById(rideId)
-      .populate('passengers', 'name defaultUpi');
+      .populate('passengers', 'name upiId');
 
     if (!ride) return res.status(404).json({ message: 'Ride not found' });
     if (ride.creator.toString() !== req.user._id.toString())
@@ -304,8 +304,21 @@ export const getRidePaymentStatus = async (req, res) => {
 export const getRideById = async (req, res) => {
   try {
     const ride = await rideModel.findById(req.params.id)
-      .populate('creator', 'name _id')
+      .populate('creator', 'name _id upiId')
       .populate('passengers', 'name _id');
+    if (!ride) return res.status(404).json({ message: 'Ride not found' });
+    res.json({ ride });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getRide = async (req, res) => {
+  try {
+    const ride = await rideModel
+      .findById(req.params.rideId)
+      .populate('creator',    'name upiId phone')
+      .populate('passengers', 'name upiId');
     if (!ride) return res.status(404).json({ message: 'Ride not found' });
     res.json({ ride });
   } catch (err) {
