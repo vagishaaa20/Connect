@@ -7,7 +7,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { AuthContext } from '../context/AuthContext';
 
-const API = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 // ── Unique color per user ─────────────────────────────────────────────────────
 const USER_COLORS = ['#fbbf24', '#34d399', '#818cf8', '#f97316', '#ec4899', '#06b6d4'];

@@ -5,7 +5,7 @@ import { Send, CreditCard, MapPin, Sparkles, Bot, Hash, ShoppingCart, Check, X, 
 import io from 'socket.io-client';
 import debounce from 'lodash.debounce';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 // Socket created once at module level but connected manually
 const socket = io(API, {

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Car, CheckCircle, Clock, AlertCircle, Sparkles, ArrowLeft, Navigation, MapPin, Copy, ExternalLink } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}';
 
 const RidePaymentPage = () => {
   const { rideId } = useParams();

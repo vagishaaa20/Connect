@@ -9,7 +9,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 
-const API = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 /* ══════════════════════════════════════
    AMBIENT GRID BACKGROUND

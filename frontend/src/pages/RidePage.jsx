@@ -5,7 +5,7 @@ import { Car, Plus, Users, MapPin, Clock, Zap, ArrowLeft, Navigation, Fuel, Wind
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL}';
 
 const RoadLines = () => (
   <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>

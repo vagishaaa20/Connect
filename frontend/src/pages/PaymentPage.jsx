@@ -22,7 +22,7 @@ useEffect(() => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/payments/status/${groupId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/status/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -42,7 +42,7 @@ useEffect(() => {
     setPaying(true);
     try {
       // Step 1 — create Razorpay order
-      const res = await fetch('http://localhost:5000/api/payments/create-order', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/payments/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ useEffect(() => {
         theme: { color: '#f97316' },
         handler: async (response) => {
           // Step 3 — verify payment on backend
-          const verifyRes = await fetch('http://localhost:5000/api/payments/verify', {
+          const verifyRes = await fetch('${import.meta.env.VITE_API_URL}/api/payments/verify', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

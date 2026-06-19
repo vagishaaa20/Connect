@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
-const API = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 const FOODS = ['🍕', '🍜', '🍔', '☕', '🥤', '🍣', '🧆', '🍩', '🥗', '🌮'];
 const FoodParticles = () => (
@@ -104,7 +104,7 @@ const parseInvoiceWithAI = async (file, token) => {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-  const response = await fetch('http://localhost:5000/api/cart/parse-invoice-ai', {
+  const response = await fetch('${import.meta.env.VITE_API_URL}/api/cart/parse-invoice-ai', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify({ base64, mimeType: file.type })
